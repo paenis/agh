@@ -1,15 +1,20 @@
-HQ L09C02
-  actually run in x86 holy
-  pw is Sh3n4n1g4ns
+~~ L09 ~~
+  HQ L09C02
+    actually run in x86 holy
+    pw is Sh3n4n1g4ns
 
-HQ L10C01
-  agh agh agha gh hgahahghgahg  hga ah ga gha hgahg
-  same as above its probably just put a bunch of shit in stdin
+  HQ L09C05
+    actually go learn php jfc
 
-HQ L10C09
-  set date to aug 20? "Book time in with J this week"
-  i hate elf files
+~~ L10 ~~
+  HQ L10C01
+    agh agh agha gh hgahahghgahg  hga ah ga gha hgahg
+    same as above its probably just put a bunch of shit in stdin
+
+  HQ L10C09
+    set date to aug 20? "Book time in with J this week"
+    i hate elf files
   
-HQ L10C11
-  msg_more/zip file
-  _use john_
+  HQ L10C11
+   msg_more/zip file
+    _use john_
