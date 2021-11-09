@@ -9,3 +9,7 @@ HQ L10C01
 HQ L10C09
   set date to aug 20? "Book time in with J this week"
   i hate elf files
+  
+HQ L10C11
+  msg_more/zip file
+  _use john_
