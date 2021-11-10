@@ -18,3 +18,7 @@
   HQ L10C11
    msg_more/zip file
     _use john_
+
+links:
+  https://en.wikipedia.org/wiki/List_of_file_signatures
+  https://en.wikipedia.org/wiki/List_of_file_formats
