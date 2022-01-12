@@ -19,6 +19,4 @@ test(
     *params,
 )
 
-
 # re.sub(f"(.)\\1{{{length},}}", "\\1" * length, "generated")
-print("h" "" "e" "" "l" "" "l" "" "o" "" " " "" "w" "" "o" "" "r" "" "l" "" "d" "" "!")
