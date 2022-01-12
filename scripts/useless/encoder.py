@@ -28,7 +28,7 @@ def generate_bytes_for_seed(seed: int, message: str) -> bytearray:
 	r.seed(seed)
 	result = bytearray()
 	i = 0
-	j = 0
+	j = 0 # avoid creating another Random() object for filler
 	k = seed % 256  # iv for j
 	# print(k)
 	while i < len(message):
@@ -48,7 +48,7 @@ def newline():
 
 ## DOUBLE ESCAPE CONTROLS (\n \t etc.) OR USE RAW STRING
 
-s='hi cark                           '
+s='Hello, world!'
 
 params={
 	'sep':'-',
@@ -62,9 +62,6 @@ print(enc)
 newline()
 
 with open('encoder/outfile.txt','w')as file:file.write(enc)
-
-# with open('outfile.txt','r') as file:
-# 	exec(a(file.read()))
 
 def make_autorun(infile,outfile='autorun.py'):
 	with open(infile,'r') as inf, open(outfile,'w') as outf:
@@ -89,13 +86,3 @@ print(''.join((chr(B.randrange(256)^D)for D in bytes.fromhex((A[2]if len(A)>2 el
 """)
 
 make_autorun_no_infile('encoder/autorun_otf.py')
-
-
-# with open(infile,'r') as inf, open(outfile,'w') as outf:
-# 	f"""import random
-# 	D={repr(inf.read())}.split(\'\\x03ETX\');B=D[1]
-# 	random.seed({seed})
-# 	print(''.join(chr(random.randrange(256) ^ c)
-# 			for c in bytes.fromhex({repr(generate_bytes_for_seed(seed, message).hex().upper())})
-# 			if random.randrange(2)))
-# 	"""
