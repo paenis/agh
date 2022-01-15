@@ -1,4 +1,6 @@
-string=''
+import sys
+with open(sys.argv[1], 'r') as file:
+	string = file.read()
 
 import random as B
 C=string.split('\x03ETX')
