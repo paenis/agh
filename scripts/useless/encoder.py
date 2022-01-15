@@ -7,6 +7,7 @@ parser.add_argument("-e", "--exec", help="execute code (print by default)", acti
 parser.add_argument("-p", "--print", help="print code to stdout", action="store_true")
 parser.add_argument("-s", "--seed", type=int, help="custom encoding seed")
 parser.add_argument("file", type=str, help="file to encode ('-' for stdin)")
+# TODO: add outfile option
 
 args = parser.parse_args()
 
