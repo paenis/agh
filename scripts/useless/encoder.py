@@ -1,13 +1,16 @@
-import random as r, argparse
+import random as r, argparse, os
 
-parser = argparse.ArgumentParser()
+FILE_OVERHEAD = 352
+
+parser = argparse.ArgumentParser(usage="%(prog)s [-hvepd] [-s SEED] file [output]")
 
 parser.add_argument("-v", "--verbose", help="print extra encoding info", action="store_true")
-parser.add_argument("-e", "--exec", help="execute code (print by default)", action="store_true")
+parser.add_argument("-e", "--exec", help="execute code in generated file (print by default)", action="store_true")
 parser.add_argument("-p", "--print", help="print code to stdout", action="store_true")
+parser.add_argument("-d", "--dryrun", help="don't output files (best used with -v)", action="store_true")
 parser.add_argument("-s", "--seed", type=int, help="custom encoding seed")
 parser.add_argument("file", type=str, help="file to encode ('-' for stdin)")
-# TODO: add outfile option
+parser.add_argument("output", type=str, help="output path (cwd by default)", default=os.curdir, nargs="?")
 
 args = parser.parse_args()
 
@@ -25,6 +28,8 @@ def e(str, sep, pad=" ", split=None):  # encode
                 prezip.append(c)
     prezip = sep.join(prezip) + f'\x03ETX{sep}{pad}{split or" "}'
     return prezip
+
+
 def d(str, sep, pad=" ", split=" "):  # decode with params
     return split.join(
         [
@@ -32,24 +37,16 @@ def d(str, sep, pad=" ", split=" "):  # decode with params
             for i in ["".join(i) for i in zip(*str.split("\x03ETX")[0].split(sep))]
         ]
     )
+
+
 def a(str):  # decode with ETX magic
     m = str.split("\x03ETX")
     q = m[1]
     return q[2].join(
         [i.strip(q[1]) for i in ["".join(i) for i in zip(*m[0].split(q[0]))]]
     )
-def m(s, m):  # mangler
-    return (
-        s[0]
-        + "".join(
-            [
-                (r.randrange(2) * m) + c + (r.randrange(2) * m)
-                for i, c in enumerate(s)
-                if i != 0 and i != len(s) - 1
-            ]
-        )
-        + s[-1]
-    )
+
+
 def generate_bytes_for_seed(seed: int, message: str) -> bytearray:
     r.seed(seed)
     result = bytearray()
@@ -68,11 +65,7 @@ def generate_bytes_for_seed(seed: int, message: str) -> bytearray:
             result.append(j % 256)
             # print(j)
     return result
-def newline():
-    print("")
 
-
-## DOUBLE ESCAPE CONTROLS (\n \t etc.) OR USE RAW STRING
 
 if args.file != "-":
     with open(args.file, "r") as file:
@@ -90,53 +83,69 @@ params = {
 seed = args.seed or r.randint(1e3, 1e4)
 
 enc = e(generate_bytes_for_seed(seed, s).hex().upper(), **params) + f"{{{seed}}}"
+
+# compress a bit
+for i in zip(
+    ("xx","aa","bb","cc","dd","ee","ff","gg","hh","ii","jj",),
+    ("a","b","c","d","e","f","g","h","i","j","k",),
+):
+    enc = enc.replace(*i)
+
 if args.verbose:
     print(
         *(
             enc,
             generate_bytes_for_seed(seed, s).hex().upper() + f"{{{seed}}}",
-            f"size: {len(enc)/len(s):.02f}x",
+            f"size: {len(enc)/len(s):.02f}x ({(len(enc)+FILE_OVERHEAD)/len(s):.02f}x)",
         ),
         sep="\n\n",
+        end="\n\n",
     )
-    newline()
 
-with open("encoder/outfile.txt", "w") as file:
-    file.write(enc)
+if not args.dryrun:
+    if not os.path.exists(args.output):
+        os.mkdir(args.output)
+
+    with open(os.path.join(args.output, "outfile.txt"), "w+") as file:
+        file.write(enc)
 
 
 def make_autorun(infile, outfile="autorun.py"):
-    with open(infile, "r") as inf, open(outfile, "w") as outf:
+    with open(infile, "r") as inf, open(outfile, "w+") as outf:
         # print(inf.read())
         outf.write(
             f"""import random as B
-C={repr(inf.read())}.split('\\x03ETX')
+C={repr(inf.read())}
+for A in zip('j i h g f e d c b a'.split(),'ii hh gg ff ee dd cc bb aa xx'.split()):C=C.replace(*A)
+C=C.split('\\x03ETX')
 A=C[1]
 B.seed(int(A[4:-1]))
-{'exec'if args.exec else'print'}(''.join((chr(B.randrange(256)^D)for D in bytes.fromhex((A[2]if len(A)>2 else' ').join([B.strip(A[1])for B in[''.join(B)for B in zip(*C[0].split(A[0]))]]))if B.randrange(2))))
+{'exec'if args.exec else'print'}(''.join((chr(B.randrange(256)^D)for D in bytes.fromhex((A[2]if len(A)>2else' ').join([B.strip(A[1])for B in[''.join(B)for B in zip(*C[0].split(A[0]))]]))if B.randrange(2))))
 """
         )
-
-
-# make_autorun('encoder/outfile.txt','encoder/autorun_file.py')
 
 
 def make_autorun_no_infile(outfile="autorun.py"):
-    with open(outfile, "w") as outf:
+    with open(outfile, "w+") as outf:
         outf.write(
             f"""import random as B
-C={repr(enc)}.split('\\x03ETX')
+C={repr(enc)}
+for A in zip('j i h g f e d c b a'.split(),'ii hh gg ff ee dd cc bb aa xx'.split()):C=C.replace(*A)
+C=C.split('\\x03ETX')
 A=C[1]
 B.seed(int(A[4:-1]))
-{'exec'if args.exec else'print'}(''.join((chr(B.randrange(256)^D)for D in bytes.fromhex((A[2]if len(A)>2 else' ').join([B.strip(A[1])for B in[''.join(B)for B in zip(*C[0].split(A[0]))]]))if B.randrange(2))))
+{'exec'if args.exec else'print'}(''.join((chr(B.randrange(256)^D)for D in bytes.fromhex((A[2]if len(A)>2else' ').join([B.strip(A[1])for B in[''.join(B)for B in zip(*C[0].split(A[0]))]]))if B.randrange(2))))
 """
         )
 
 
-make_autorun_no_infile("encoder/autorun_otf.py")
+if not args.dryrun:
+    make_autorun_no_infile(os.path.join(args.output, "autorun_otf.py"))
 
-if args.print:
-    with open("encoder/autorun_otf.py", "r") as file:
-        print(file.read())
+    if args.print:
+        with open(os.path.join(args.output, "autorun_otf.py"), "r") as file:
+            print(file.read())
 
-print("done! wrote to ./encoder/autorun_otf.py")
+    print(f"done! wrote to {os.path.join(args.output,'autorun_otf.py')}")
+else:
+    print("done!")
